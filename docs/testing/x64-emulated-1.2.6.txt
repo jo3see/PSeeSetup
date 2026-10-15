@@ -1,0 +1,92 @@
+Test environment: OS=Arm64, process=X64
+PASS  Application keys are unique
+PASS  Tweak keys are unique
+PASS  Feature keys are unique
+PASS  WinGet IDs are exact and unique
+PASS  All fallbacks use HTTPS and signer allowlists
+PASS  Default selections include Spotify, JDownloader 2, and BlueBubbles
+PASS  Requested application batch is present without duplicates
+PASS  BlueBubbles uses the official Microsoft Store product
+PASS  Only .NET 10 is selected by default
+PASS  PowerShell remains an upgrade-always exception
+PASS  Removed tweaks stay removed
+PASS  Required Windows features remain selected
+PASS  BitLocker preparation uses stable protected resume identifiers
+PASS  Unlocked BitLocker status is not mistaken for locked
+PASS  Main selection window constructs before its handle exists
+PASS  Main window uses the requested navigation and action text
+PASS  Known application paths support pre-install skipping
+PASS  Strict executable detection requires a successful launch
+PASS  Equalizer APO launches from its installation directory
+PASS  Fallback hashing releases the installer for retry
+PASS  Authenticode command embeds and escapes its path
+PASS  Authenticode verification accepts a signed Windows executable
+PASS  Parsec retains its official safe fallback
+PASS  Windows Terminal is set explicitly to PowerShell 7
+PASS  Profile JSON round trip
+PASS  Native ARM integrations reject explicit x64 overrides
+PASS  Store source lets Windows select the applicable package
+PASS  Saved runs from another version stop before system work
+PASS  Architecture support and automatic launcher select native OS
+PASS  ARM preset retains all requested default applications
+PASS  All catalog apps are selectable with their ARM limitations visible
+PASS  Native drivers use explicit ARM64 with no emulation downgrade
+PASS  Native query matches installer scope and architecture
+PASS  OBS ARM portable package is not forced into machine scope
+PASS  Fallbacks select ARM64 payload and independently pinned hashes
+PASS  Unknown new catalog items are held for verification on ARM
+PASS  ARM WinGet discovery uses native App Installer package name
+PASS  PE inspection recognizes ARM64 and rejects malformed binary
+PASS  An installed Spotify Store package skips the desktop installer
+PASS  WinGet show exit zero without an installer is rejected
+PASS  ARM unavailable native installer uses approved emulation
+PASS  Available ARM installer is preferred and native integrations fail closed
+PASS  HTML and malformed downloads cannot pass executable validation
+PASS  Final results count components and resolve earlier failed attempts
+PASS  Failed-app retry starts a fresh application selection without tweaks or features
+PASS  Applications-only flag survives profile export/import
+PASS  Log opening uses the exact file and default editor without launching during tests
+PASS  Installed BlueBubbles Store package skips duplicate installation
+PASS  Parsec ARM installs explicitly exclude bundled virtual drivers
+PASS  Every catalog application is selectable on ARM64
+PASS  Intel PCs select x64/x86 only and reject an ARM override
+PASS  ARM ordinary apps try native then x64 then x86
+PASS  Unavailable ARM package falls back to x64 and records selection
+PASS  Native vendor apps precede emulation; unavailable native download falls back
+PASS  Tor portable detection uses actual Desktop including redirected folders
+PASS  Presence verification keeps preinstalled apps classified as skipped
+PASS  Unraid x86 bootstrapper does not invent a manifest scope
+PASS  Unraid uses a pinned signed versioned vendor release on both architectures
+PASS  Unraid installer cannot remove an existing Raspberry Pi Imager
+PASS  TeamViewer ARM installer is a pinned MSI archive, not the EXE wrapper
+PASS  MSI arguments preserve paths with spaces and include install, quiet, and no restart
+PASS  TeamViewer detection checks actual PE files and both Program Files locations
+PASS  Unconfirmed TeamViewer ARM install never starts a second Intel installer
+PASS  Existing TeamViewer is skipped without upgrade or uninstall
+PASS  Tampered MSI archives are rejected before extraction
+PASS  Real vendor downloads validate hashes, publishers and ARM64 MSI metadata without installing
+PASS  All 24 requested removal entries are present, unique and unchecked by default
+PASS  Absent, protected and undetected apps remain blocked; publisher labels do not block installed apps
+PASS  Unknown or blank publishers do not prevent exact Store app removal
+PASS  Registered EXE removal accepts unsigned uninstallers and unfamiliar publishers without executing during tests
+PASS  Sticky Notes new cannot uninstall OneNote
+PASS  Xbox and Game Bar removal excludes shared gaming services and system packages
+PASS  Two Copilot entries resolve to distinct desktop and Store installations
+PASS  ASUS Store detection accepts exact app labels and rejects unrelated utilities
+PASS  Store removal targets one exact package in current-user scope and escapes quotes
+PASS  Registered MSI uninstall uses product identity, quiet flags and separate paths
+PASS  Deno removal uses its exact WinGet ID instead of executing registry text
+PASS  Uninstaller command parsing preserves quoted paths and vendor switches
+PASS  Absent and unsupported selections never invoke removal commands
+PASS  Store removal verifies absence and leaves other apps untouched
+PASS  Installer exit zero cannot hide an app that remains installed
+PASS  Recall uses supported feature removal without forcing a restart
+PASS  Removal state persists but failed-install retries strip all removals
+PASS  Legacy simulation flags cannot restore simulation in version 1.2.6
+PASS  Retry picker displays every JSON filename
+PASS  Supplied retry profile imports without requiring the name state.json
+PASS  Renamed run state imports only latest failed applications
+PASS  Retry imports strip system changes and normalize application keys
+PASS  Unrelated JSON and mismatched architecture cannot become retry selections
+PASS  Encryption dialog text and buttons fit at 100%, 125%, 150% and 200%
+90/90 tests passed.

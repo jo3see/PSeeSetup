@@ -1,0 +1,28 @@
+# Local development, SDKs, downloads and generated releases
+**/bin/
+**/obj/
+/work/
+/outputs/
+/.packages/
+/.vs/
+/.idea/
+*.user
+*.suo
+
+# Personal run data and installer logs
+*.log
+state.json
+Final Report.txt
+*.partial
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.snk
+
+# OS metadata
+Thumbs.db
+.DS_Store
