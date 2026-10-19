@@ -1,0 +1,67 @@
+name: Build and publish prerelease
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/PCSetup.App/PCSetup.App.csproj
+      - .github/workflows/release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-prerelease
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '10.0.402'
+      - name: Test on Windows x64
+        run: |
+          dotnet publish tests/PCSetup.Tests/PCSetup.Tests.csproj -c Release -r win-x64 --self-contained true -o work/tests-x64
+          if ($LASTEXITCODE -ne 0) { throw 'Test build failed' }
+          & ./work/tests-x64/PCSetup.Tests.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Automated checks failed' }
+      - name: Build both architectures and launcher
+        run: ./build.ps1
+      - name: Package and publish
+        env:
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          [xml]$project = Get-Content src/PCSetup.App/PCSetup.App.csproj
+          $version = [string]$project.Project.PropertyGroup.Version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid release version' }
+          $tag = "v$version"
+          $package = "outputs/PSeeSetup-$version.zip"
+          $checksum = "$package.sha256"
+          $notes = "RELEASE-$version.md"
+          if (-not (Test-Path -LiteralPath $notes)) { throw 'Release notes missing' }
+          Compress-Archive -Path "outputs/PSeeSetup $version/*" -DestinationPath $package
+          $hash = (Get-FileHash -LiteralPath $package -Algorithm SHA256).Hash
+          "$hash  PSeeSetup-$version.zip" | Set-Content -LiteralPath $checksum -Encoding ascii
+          # Never replace an existing release or its assets.
+          gh release view $tag --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { throw "Release $tag already exists; no assets were replaced" }
+          gh release create $tag $package $checksum --target $env:RELEASE_COMMIT --title "PSeeSetup $version - Snapdragon support" --notes-file $notes --prerelease
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }

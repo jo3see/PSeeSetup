@@ -41,13 +41,14 @@ public static class Regression123Tests
             Check(!query.Contains("--custom") && !query.Any(x => x.Contains("/nodrivers")));
             Check(ArchitecturePolicy.FallbackFor(app, Architecture.Arm64)!.SilentArguments.Contains("/nodrivers"));
         }),
-        ("Every catalog application is selectable on ARM64", () =>
+        ("General catalog apps remain selectable on ARM64; Snapdragon has hardware gating", () =>
         {
-            foreach (var app in Catalog.Applications) Check(ArchitecturePolicy.For(app, Architecture.Arm64).CanInstall);
+            foreach (var app in Catalog.Applications.Where(x => x.Key != SnapdragonSupport.AppKey))
+                Check(ArchitecturePolicy.For(app, Architecture.Arm64).CanInstall);
         }),
         ("Intel PCs select x64/x86 only and reject an ARM override", () =>
         {
-            foreach (var app in Catalog.Applications)
+            foreach (var app in Catalog.Applications.Where(x => x.Key != SnapdragonSupport.AppKey))
             {
                 Check(ArchitecturePolicy.InstallerArchitectures(app, Architecture.X64).SequenceEqual(["x64", "x86"]));
                 var args = WingetService.BuildInstallArguments(app, architecture: Architecture.X64);

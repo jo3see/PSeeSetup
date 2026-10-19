@@ -2,13 +2,13 @@
 
 A Windows 11 setup utility for **x64 and ARM64**, including Qualcomm Snapdragon laptops. Install selected applications, apply Windows preferences, and remove unwanted apps through a four-tab interface.
 
-**Status: 1.2.6 prerelease.** This is a personal setup tool being opened for community testing, not a certification that every listed application's features work on every PC.
+**Status: 1.2.7 prerelease.** This is a personal setup tool being opened for community testing, not a certification that every listed application's features work on every PC.
 
 > **Read before running:** setup requires all mounted internal fixed drives to be fully decrypted. It permanently disables UAC, may temporarily enable it for per-user installations, applies the preferences you select, and can restart Windows automatically up to five times. These requirements still apply if you select only app removals. Run only if you want those changes. Back up important data first.
 
 ## Download and run
 
-Download **PSeeSetup-1.2.6.zip** from [Releases](https://github.com/jo3see/PSeeSetup/releases). Extract the entire folder, then launch the top-level **PSeeSetup.exe**. It selects the native x64 or ARM64 application. The download is self-contained; a preinstalled .NET runtime is not required.
+Download **PSeeSetup-1.2.7.zip** from [Releases](https://github.com/jo3see/PSeeSetup/releases). Extract the entire folder, then launch the top-level **PSeeSetup.exe**. It selects the native x64 or ARM64 application. The download is self-contained; a preinstalled .NET runtime is not required.
 
 The Windows executables are not code-signed. The encryption prerequisite has its own confirmation before any decryption begins. Setup requires the signed-in administrator identity and resumes after required restarts.
 
@@ -37,6 +37,8 @@ Screenshots use synthetic installed-app data from UI tests.
 
 ## Known limitations
 
+- **Snapdragon Control Panel:** optional and unchecked by default. Enabled only on detected Snapdragon ARM64 hardware running Windows 11 24H2 or later. Installs the native ARM64 .NET 9 Desktop Runtime 9.0.21 when a suitable 9.0 patch is absent, then installs Qualcomm's version 2026.3.0.0 MSIX for the signed-in user. Existing matching or newer packages are retained. The archive hash, Qualcomm signature and MSIX identity are checked. Missing ARM64 Visual C++ framework packages stop this installation with instructions to update Microsoft Store apps/App Installer. Accept Qualcomm's EULA yourself on first launch. PSeeSetup does not install graphics drivers as part of this option.
+
 - **Unraid USB Creator:** held when Raspberry Pi Imager is detected because the current vendor installer can conflict with or uninstall Pi Imager.
 - **TeamViewer:** ARM64 uses a signed, architecture-checked vendor MSI. Existing x64 installations are preserved. A fresh native ARM64 installation still needs a live integration test.
 - **Sticky Notes (new):** part of OneNote; independent removal is not supported. OneNote is retained.
@@ -46,6 +48,8 @@ Screenshots use synthetic installed-app data from UI tests.
 - Runtime logs and saved state use `%ProgramData%\PCSetup\Runs` for continuity with earlier internal builds. Start a fresh run after changing versions. Failed-install JSON imports create a fresh applications-only selection and strip app removals, tweaks and Windows-feature selections.
 
 ## Validation so far
+
+Version 1.2.7 passed 99/99 automated checks on native ARM64 and 99/99 under x64 emulation, including verification of both official installer downloads. Both application architectures and the launcher build successfully. The new live Control Panel install/reboot path still needs a live integration test. See [RELEASE-1.2.7.md](RELEASE-1.2.7.md). The 90-check results below describe version 1.2.6.
 
 - **90/90 automated checks passed in a native ARM64 process.**
 - **90/90 passed in an x64 process under Windows ARM emulation.** This does not establish testing on physical Intel/AMD hardware.
@@ -62,7 +66,7 @@ Requires Windows and the **.NET 10 SDK**. No SDK or downloaded vendor installer 
 .\build.ps1
 ```
 
-This publishes the x64 app, ARM64 app and automatic launcher into `outputs\PSeeSetup 1.2.6`. The script uses a local SDK if available, otherwise `dotnet.exe` on PATH.
+This publishes the x64 app, ARM64 app and automatic launcher into `outputs\PSeeSetup 1.2.7`. The script uses a local SDK if available, otherwise `dotnet.exe` on PATH.
 
 To run the automated checks on an ARM64 PC:
 

@@ -14,6 +14,6 @@
     <PlatformTarget Condition="'$(RuntimeIdentifier)' != 'win-arm64'">x64</PlatformTarget>
     <PublishTrimmed>false</PublishTrimmed>
     <DebugType>embedded</DebugType>
-    <Version>1.2.6</Version>
+    <Version>1.2.7</Version>
   </PropertyGroup>
 </Project>

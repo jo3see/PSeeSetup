@@ -4,6 +4,8 @@ public static class Catalog
 {
     public static readonly IReadOnlyList<AppDefinition> Applications =
     [
+        App("snapdragoncontrolpanel", "Snapdragon Control Panel", "System utilities", "", InstallContext.User, false,
+            "For Snapdragon ARM64 PCs on Windows 11 24H2 or later. Includes ARM64 .NET 9 Desktop Runtime 9.0.21 when needed. Uses Qualcomm's official MSIX; accept its EULA on first launch."),
         App("chrome", "Google Chrome", "Browsers", "Google.Chrome", InstallContext.Machine, true, "Fast, managed-compatible web browser."),
         App("brave", "Brave Web Browser", "Browsers", "Brave.Brave", InstallContext.Machine, true, "Privacy-focused Chromium web browser."),
         App("tor", "Tor Browser", "Browsers", "TorProject.TorBrowser", InstallContext.User, true, "Privacy-focused browser installed for the signed-in user.",

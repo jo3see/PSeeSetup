@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'outputs\PSeeSetup 1.2.6'),
+    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'outputs\PSeeSetup 1.2.7'),
     [string]$DotnetPath = (Join-Path $PSScriptRoot 'work\sdk\dotnet.exe')
 )
 $ErrorActionPreference = 'Stop'

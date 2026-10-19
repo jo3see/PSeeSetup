@@ -8,6 +8,7 @@ public sealed class ApplicationInstaller
     private readonly DownloadService _downloads;
     private readonly ProcessRunner _process;
     private readonly RunLogger _log;
+    private readonly SnapdragonInstaller _snapdragon;
     private readonly Func<bool> _spotifyStoreInstalled;
     private readonly Func<bool> _bluebubblesStoreInstalled;
     private readonly Func<AppDefinition, bool> _isInstalled;
@@ -23,6 +24,7 @@ public sealed class ApplicationInstaller
         _downloads = downloads;
         _process = process;
         _log = log;
+        _snapdragon = new SnapdragonInstaller(downloads, process, log);
         _spotifyStoreInstalled = spotifyStoreInstalled ?? (() => HasStorePackage("SpotifyAB.SpotifyMusic"));
         _bluebubblesStoreInstalled = bluebubblesStoreInstalled ?? (() => HasStorePackage("23344BlueBubbles.BlueBubbles"));
         _isInstalled = isInstalled ?? DetectInstalled;
@@ -40,6 +42,11 @@ public sealed class ApplicationInstaller
             return plan.Kind == CompatibilityKind.Skipped ? ResultKind.Skipped : ResultKind.NeedsVerification;
         }
         _log.Info($"{app.Name}: {plan.Label}; initial preference={plan.Architecture ?? "WinGet automatic"}.");
+        if (app.Key == SnapdragonSupport.AppKey)
+        {
+            LastInstallerArchitecture = "arm64 (Qualcomm MSIX)";
+            return await _snapdragon.InstallAsync(cacheDirectory, cancellationToken).ConfigureAwait(false);
+        }
         if (app.Key == "powerbi" && ArchitecturePolicy.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64
             && Environment.OSVersion.Version.Build < 26100)
         {
@@ -201,6 +208,7 @@ public sealed class ApplicationInstaller
 
     private bool DetectInstalled(AppDefinition app)
     {
+        if (app.Key == SnapdragonSupport.AppKey) return _snapdragon.HasRuntime() && _snapdragon.IsInstalled();
         if (app.Key == "teamviewer") return InstalledTeamViewerArchitecture() is not null;
         if (app.Key == "spotify" && _spotifyStoreInstalled()) return true;
         if (app.Key == "bluebubbles" && _bluebubblesStoreInstalled()) return true;
