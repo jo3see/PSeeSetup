@@ -9,6 +9,7 @@ public sealed class SetupEngine
     private readonly UacService _uac;
     private readonly WingetService _winget;
     private readonly ApplicationInstaller _apps;
+    private readonly SnapdragonInstaller _snapdragon;
     private readonly RestorePointService _restorePoint;
     private readonly ResumeTaskService _resume;
     private readonly StagingService _staging;
@@ -28,6 +29,7 @@ public sealed class SetupEngine
         _winget = new WingetService(_process, log);
         var downloads = new DownloadService(_process, log);
         _apps = new ApplicationInstaller(_winget, downloads, _process, log);
+        _snapdragon = new SnapdragonInstaller(downloads, _process, log);
         _restorePoint = new RestorePointService(_process, log);
         _resume = new ResumeTaskService(log);
         _staging = new StagingService(log);
@@ -42,8 +44,8 @@ public sealed class SetupEngine
         {
             ValidateProfile();
             if (_state.Phase != SetupPhase.NotStarted &&
-                (_state.TargetArchitecture != ArchitecturePolicy.NativeArchitecture || _state.SetupVersion != "1.2.6"))
-                throw new InvalidOperationException("This saved run belongs to a different PSeeSetup version or architecture. Start a new 1.2.6 setup; profile files can still be imported.");
+                (_state.TargetArchitecture != ArchitecturePolicy.NativeArchitecture || _state.SetupVersion != "1.2.7"))
+                throw new InvalidOperationException("This saved run belongs to a different PSeeSetup version or architecture. Start a new 1.2.7 setup; profile files can still be imported.");
             if (!SystemContext.IsSupportedWindows(out var platformReason)) throw new InvalidOperationException(platformReason);
             if (!SystemContext.IsAdministrator()) throw new InvalidOperationException("Administrator rights are required.");
             var interactiveUser = SystemContext.InteractiveIdentity();
@@ -55,6 +57,7 @@ public sealed class SetupEngine
                 throw new InvalidOperationException("BITLOCKER HARD STOP: " + bitLocker.Summary);
 
             _total = 8 + _state.Profile.Applications.Count + _state.Profile.Tweaks.Count + _state.Profile.Features.Count + _state.Profile.UninstallApplications.Count;
+            if (_state.Profile.Applications.Contains(SnapdragonSupport.AppKey)) _total++;
 
             if (_state.Phase == SetupPhase.Failed && _state.ResumePhase is not null)
             {
@@ -65,7 +68,7 @@ public sealed class SetupEngine
             if (_state.Phase == SetupPhase.NotStarted)
             {
                 _state.TargetArchitecture = ArchitecturePolicy.NativeArchitecture;
-                _state.SetupVersion = "1.2.6";
+                _state.SetupVersion = "1.2.7";
                 _state.InteractiveUser = interactiveUser;
                 _state.UacWasInitiallyEnabled = _uac.IsEnabled();
                 _staging.Stage(_state);
@@ -118,6 +121,13 @@ public sealed class SetupEngine
                         var userApps = SelectedApps(InstallContext.User).ToArray();
                         if (userApps.Any(app => !_apps.IsInstalled(app)) && !_uac.IsEnabled())
                             throw new InvalidOperationException("User-context applications cannot be installed until the temporary UAC reboot has completed.");
+                        if (userApps.Any(app => app.Key == SnapdragonSupport.AppKey) && SnapdragonSupport.IsEligibleSystem())
+                        {
+                            var dependency = await ExecuteOptionalAsync("dependency:snapdragon:dotnet9", "Snapdragon: ARM64 .NET 9 Desktop Runtime",
+                                () => _snapdragon.EnsureRuntimeAsync(CacheDirectory(), cancellationToken), "Dependencies", progress).ConfigureAwait(false);
+                            if (dependency == ResultKind.RebootRequired)
+                                return await ScheduleRebootAsync(progress, "Completing the Snapdragon .NET 9 dependency", cancellationToken).ConfigureAwait(false);
+                        }
                         foreach (var app in userApps)
                             await ExecuteOptionalAsync("app:" + app.Key, app.Name,
                                 () => _apps.InstallAsync(app, CacheDirectory(), cancellationToken), "Applications", progress).ConfigureAwait(false);

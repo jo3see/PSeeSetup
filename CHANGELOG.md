@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.7 prerelease
+
+- Added optional Snapdragon Control Panel 2026.3.0.0 with hardware/Windows eligibility checks, native ARM64 .NET 9 Desktop Runtime dependency handling, verified Qualcomm MSIX deployment, retry/resume support and automated regression checks. See RELEASE-1.2.7.md.
+
 ## 1.2.6 — first public prerelease
 
 - Added Uninstall Apps with 24 entries, including separate desktop and Store Copilot targets.

@@ -13,7 +13,7 @@ internal static class Program
             var executable = Path.Combine(AppContext.BaseDirectory,
                 LauncherTarget.FolderFor(RuntimeInformation.OSArchitecture), "PSeeSetup.exe");
             if (!File.Exists(executable))
-                throw new FileNotFoundException("Extract the entire PSeeSetup 1.2.6 folder before launching it.", executable);
+                throw new FileNotFoundException("Extract the entire PSeeSetup 1.2.7 folder before launching it.", executable);
             var start = new ProcessStartInfo(executable)
             {
                 UseShellExecute = true,
@@ -26,7 +26,7 @@ internal static class Program
         }
         catch (Exception exception)
         {
-            MessageBox.Show(exception.Message, "PSeeSetup 1.2.6", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(exception.Message, "PSeeSetup 1.2.7", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
     }

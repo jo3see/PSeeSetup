@@ -7,7 +7,7 @@ var tests = new List<(string Name, Action Test)>
     ("Application keys are unique", () => Unique(Catalog.Applications.Select(x => x.Key))),
     ("Tweak keys are unique", () => Unique(Catalog.Tweaks.Select(x => x.Key))),
     ("Feature keys are unique", () => Unique(Catalog.Features.Select(x => x.Key))),
-    ("WinGet IDs are exact and unique", () => Unique(Catalog.Applications.Select(x => x.WingetId))),
+    ("WinGet IDs are exact and unique", () => Unique(Catalog.Applications.Where(x => x.Key != SnapdragonSupport.AppKey).Select(x => x.WingetId))),
     ("All fallbacks use HTTPS and signer allowlists", () =>
     {
         foreach (var fallback in Catalog.Applications.Where(x => x.Fallback is not null).Select(x => x.Fallback!))
@@ -242,6 +242,23 @@ var tests = new List<(string Name, Action Test)>
 
 Console.WriteLine($"Test environment: OS={System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}, process={System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}");
 tests.AddRange(ArchitectureTests.All());
+tests.AddRange(SnapdragonTests.All());
+if (Environment.GetEnvironmentVariable("PCSETUP_SNAPDRAGON_ARCHIVE") is { Length: > 0 } snapdragonArchive)
+    tests.Add(("Official Qualcomm archive passes production hash, signature and ARM64 identity checks", () =>
+    {
+        using var logger = new RunLogger();
+        var package = SnapdragonInstaller.ExtractPackage(snapdragonArchive);
+        new DownloadService(new ProcessRunner(logger), logger).VerifyAuthenticode(package, SnapdragonInstaller.ControlPanel.AllowedSignerFragments);
+        SnapdragonInstaller.ValidateManifest(package);
+    }));
+if (Environment.GetEnvironmentVariable("PCSETUP_SNAPDRAGON_RUNTIME") is { Length: > 0 } snapdragonRuntime)
+    tests.Add(("Official Microsoft ARM64 Desktop Runtime matches the pinned hash and signature", () =>
+    {
+        using var logger = new RunLogger();
+        Assert(DownloadService.ComputeSha256Async(snapdragonRuntime).GetAwaiter().GetResult() == SnapdragonInstaller.Runtime.ExpectedSha256, "Runtime hash mismatch");
+        new DownloadService(new ProcessRunner(logger), logger).VerifyAuthenticode(snapdragonRuntime, SnapdragonInstaller.Runtime.AllowedSignerFragments);
+        Assert(BinaryArchitecture.Read(snapdragonRuntime) is not null, "Runtime bootstrapper is not a valid PE executable");
+    }));
 tests.AddRange(Regression122Tests.All());
 tests.AddRange(Regression123Tests.All());
 tests.AddRange(Regression125Tests.All());
@@ -320,7 +337,7 @@ static void TestRequestedMainWindowUi()
             var start = (System.Windows.Forms.Button)typeof(MainForm).GetField("_start", flags)!.GetValue(form)!;
             var exit = (System.Windows.Forms.Button)typeof(MainForm).GetField("_exit", flags)!.GetValue(form)!;
             var openLog = (System.Windows.Forms.Button)typeof(MainForm).GetField("_openLog", flags)!.GetValue(form)!;
-            Assert(form.Text.StartsWith("PSeeSetup 1.2.6"), "Product branding is wrong");
+            Assert(form.Text.StartsWith("PSeeSetup 1.2.7"), "Product branding is wrong");
             Assert(tabs.TabCount == 4 && tabs.TabPages[0].Text == "1  Applications"
                 && tabs.TabPages[1].Text == "2  Tweaks" && tabs.TabPages[2].Text == "3  Uninstall Apps"
                 && tabs.TabPages[3].Text == "4  Execute", "Four-tab workflow is wrong");
@@ -346,6 +363,17 @@ static void TestRequestedMainWindowUi()
             Assert(!paint.Cells[0].ReadOnly && missing.Cells[0].ReadOnly && missing.DefaultCellStyle.ForeColor == System.Drawing.Color.DimGray, "Installed/missing removal rows are wrong");
             paint.Cells[0].Value = true;
             var selectedProfile = (SetupProfile)typeof(MainForm).GetField("_profile", flags)!.GetValue(form)!;
+            var applications = (System.Windows.Forms.DataGridView)typeof(MainForm).GetField("_appsGrid", flags)!.GetValue(form)!;
+            var snapdragon = applications.Rows.Cast<System.Windows.Forms.DataGridViewRow>().Single(x => ((AppDefinition)x.Tag!).Key == SnapdragonSupport.AppKey);
+            Assert(!Convert.ToBoolean(snapdragon.Cells[0].Value), "Snapdragon must be unchecked initially");
+            Assert(snapdragon.Cells[0].ReadOnly == !SnapdragonSupport.IsEligibleSystem(), "Snapdragon hardware eligibility is not reflected in its checkbox");
+            if (!snapdragon.Cells[0].ReadOnly)
+            {
+                snapdragon.Cells[0].Value = true;
+                var summary = (System.Windows.Forms.Label)typeof(MainForm).GetField("_current", flags)!.GetValue(form)!;
+                Assert(selectedProfile.Applications.Contains(SnapdragonSupport.AppKey) && summary.Text.Contains("ARM64 .NET 9 Desktop Runtime"), "Snapdragon dependency is missing from selection summary");
+                snapdragon.Cells[0].Value = false;
+            }
             Assert(selectedProfile.UninstallApplications.SetEquals(["paint"]), "Removal checkbox does not update selections");
             paint.Cells[0].Value = false;
             File.WriteAllText(log, "UI test log");

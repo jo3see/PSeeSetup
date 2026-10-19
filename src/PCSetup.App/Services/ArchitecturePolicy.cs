@@ -29,12 +29,12 @@ public static class ArchitecturePolicy
         "chrome", "brave", "teams", "slack", "claude", "vscode", "powershell", "powertoys",
         "equalizerapo", "ytdlp", "audacity", "obs", "vlc", "spotify", "paintdotnet", "putty",
         "tailscale", "spacedesk", "jdownloader2", "orcaslicer", "7zip", "translucenttb",
-        "dotnet10", "dotnet9", "dotnet8"
+        "dotnet10", "dotnet9", "dotnet8", "snapdragoncontrolpanel"
     };
     private static readonly HashSet<string> RequiredNativeArm = new(StringComparer.OrdinalIgnoreCase)
     {
         "equalizerapo", "spacedesk", "tailscale", "powertoys", "translucenttb", "powershell",
-        "dotnet10", "dotnet9", "dotnet8"
+        "dotnet10", "dotnet9", "dotnet8", "snapdragoncontrolpanel"
     };
     private static readonly Dictionary<string, string> UnsupportedArm = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -57,9 +57,13 @@ public static class ArchitecturePolicy
         ["rainmeter"] = "Hardware-monitoring plug-ins and downloaded native DLLs need verification."
     };
 
-    public static InstallPlan For(AppDefinition app, Architecture? architecture = null)
+    public static InstallPlan For(AppDefinition app, Architecture? architecture = null, bool? snapdragonEligible = null)
     {
         var os = architecture ?? OSArchitecture;
+        if (app.Key == SnapdragonSupport.AppKey)
+            return os == Architecture.Arm64 && (snapdragonEligible ?? SnapdragonSupport.IsEligibleSystem())
+                ? new(CompatibilityKind.Native, "arm64", "Snapdragon ARM64 only; installs .NET 9 Desktop Runtime before Qualcomm's signed MSIX.")
+                : new(CompatibilityKind.Skipped, null, "Requires a detected Qualcomm Snapdragon ARM64 processor and Windows 11 24H2 or later.");
         if (!IsSupported(os)) return new(CompatibilityKind.Skipped, null, "Unsupported Windows architecture.");
         if (os == Architecture.X64) return new(CompatibilityKind.Native, "x64", "Selects x64 first, then x86 when that is the available Intel package; never selects ARM64.");
         if (!Catalog.Applications.Any(x => x.Key.Equals(app.Key, StringComparison.OrdinalIgnoreCase)))

@@ -77,6 +77,7 @@ public sealed class WingetService
     public async Task<ProcessResult> InstallAsync(AppDefinition app, bool interactiveUser,
         CancellationToken cancellationToken, bool force = false)
     {
+        if (app.Key == SnapdragonSupport.AppKey) throw new InvalidOperationException("Snapdragon Control Panel must use its verified Qualcomm MSIX installer.");
         var winget = _locate() ?? throw new InvalidOperationException("WinGet is unavailable.");
         var plan = ArchitecturePolicy.For(app);
         if (!plan.CanInstall) throw new InvalidOperationException(plan.Reason);
@@ -123,6 +124,7 @@ public sealed class WingetService
     public static IReadOnlyList<string> BuildInstallArguments(AppDefinition app, bool force = false,
         System.Runtime.InteropServices.Architecture? architecture = null, string? installerArchitecture = null)
     {
+        if (app.Key == SnapdragonSupport.AppKey) throw new InvalidOperationException("Snapdragon Control Panel has no WinGet package; use Qualcomm's verified MSIX.");
         var source = string.IsNullOrWhiteSpace(app.WingetSource) ? "winget" : app.WingetSource;
         var plan = ArchitecturePolicy.For(app, architecture);
         if (!plan.CanInstall) throw new InvalidOperationException(plan.Reason);

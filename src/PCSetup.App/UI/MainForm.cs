@@ -59,7 +59,7 @@ public sealed class MainForm : Form
             using var log = new RunLogger();
             return await new UninstallService(new ProcessRunner(log), log).ScanAsync().ConfigureAwait(false);
         });
-        Text = $"PSeeSetup 1.2.6 — {ArchitecturePolicy.NativeArchitecture.ToUpperInvariant()}";
+        Text = $"PSeeSetup 1.2.7 — {ArchitecturePolicy.NativeArchitecture.ToUpperInvariant()}";
         MinimumSize = new Size(980, 680);
         Size = new Size(1180, 820);
         StartPosition = FormStartPosition.CenterScreen;
@@ -434,6 +434,8 @@ public sealed class MainForm : Form
     {
         if (_runCancellation is not null || _runCompleted) return;
         _current.Text = $"Ready: {_profile.Applications.Count} installations, {_profile.Tweaks.Count} tweaks, {_profile.Features.Count} Windows features, {_profile.UninstallApplications.Count} app removals.";
+        if (_profile.Applications.Contains(SnapdragonSupport.AppKey))
+            _current.Text += " Snapdragon includes ARM64 .NET 9 Desktop Runtime if needed.";
     }
 
     private void ExitOrCancelRun()
